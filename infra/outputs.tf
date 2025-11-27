@@ -1,6 +1,3 @@
-########################################
-# COGNITO OUTPUTS
-########################################
 
 output "cognito_domain" {
   description = "Full Cognito Hosted UI domain (without https://)"
@@ -35,23 +32,4 @@ output "cognito_scopes" {
 output "user_pool_id" {
   description = "ID of the Cognito User Pool"
   value       = aws_cognito_user_pool.this.id
-}
-
-########################################
-# FRONTEND (S3 + CLOUDFRONT) OUTPUTS
-########################################
-
-output "frontend_s3_bucket" {
-  description = "S3 bucket for React app hosting"
-  value       = aws_s3_bucket.frontend.bucket
-}
-
-output "frontend_cloudfront_id" {
-  description = "CloudFront distribution ID"
-  value       = aws_cloudfront_distribution.frontend.id
-}
-
-output "frontend_cloudfront_domain" {
-  description = "CloudFront domain"
-  value       = aws_cloudfront_distribution.frontend.domain_name
 }
