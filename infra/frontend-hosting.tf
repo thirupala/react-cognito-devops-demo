@@ -1,12 +1,22 @@
 #######################################################
+# RANDOM SUFFIX FOR UNIQUE RESOURCE NAMES
+#######################################################
+
+resource "random_id" "suffix" {
+  byte_length = 4
+}
+
+#######################################################
 # S3 BUCKET FOR REACT FRONTEND HOSTING
 #######################################################
 
 resource "aws_s3_bucket" "frontend" {
-  bucket = "${var.project_name}-frontend-${var.aws_region}"
+  # Added random suffix to ensure uniqueness
+  bucket = "${var.project_name}-frontend-${random_id.suffix.hex}"
 
   tags = {
-    Name = "React Frontend Bucket"
+    Name        = "React Frontend Bucket"
+    Environment = var.environment
   }
 }
 
@@ -39,12 +49,38 @@ resource "aws_s3_bucket_website_configuration" "frontend" {
   }
 }
 
+# S3 bucket policy to allow CloudFront OAC access
+resource "aws_s3_bucket_policy" "frontend" {
+  bucket = aws_s3_bucket.frontend.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowCloudFrontServicePrincipal"
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.frontend.arn}/*"
+        Condition = {
+          StringEquals = {
+            "AWS:SourceArn" = aws_cloudfront_distribution.frontend.arn
+          }
+        }
+      }
+    ]
+  })
+}
+
 #######################################################
 # CLOUDFRONT DISTRIBUTION
 #######################################################
 
 resource "aws_cloudfront_origin_access_control" "frontend" {
-  name                              = "${var.project_name}-oac"
+  # Added random suffix to ensure uniqueness
+  name                              = "${var.project_name}-oac-${random_id.suffix.hex}"
   description                       = "OAC for React frontend"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
@@ -67,7 +103,7 @@ resource "aws_cloudfront_distribution" "frontend" {
     target_origin_id       = "s3-frontend-origin"
     viewer_protocol_policy = "redirect-to-https"
 
-    allowed_methods = ["GET", "HEAD"]
+    allowed_methods = ["GET", "HEAD", "OPTIONS"]
     cached_methods  = ["GET", "HEAD"]
 
     forwarded_values {
@@ -78,7 +114,23 @@ resource "aws_cloudfront_distribution" "frontend" {
       }
     }
 
-    compress = true
+    compress    = true
+    min_ttl     = 0
+    default_ttl = 3600
+    max_ttl     = 86400
+  }
+
+  # Custom error responses for SPA routing
+  custom_error_response {
+    error_code         = 404
+    response_code      = 200
+    response_page_path = "/index.html"
+  }
+
+  custom_error_response {
+    error_code         = 403
+    response_code      = 200
+    response_page_path = "/index.html"
   }
 
   price_class = "PriceClass_100"
@@ -94,7 +146,8 @@ resource "aws_cloudfront_distribution" "frontend" {
   }
 
   tags = {
-    Name = "${var.project_name}-cloudfront"
+    Name        = "${var.project_name}-cloudfront"
+    Environment = var.environment
   }
 }
 

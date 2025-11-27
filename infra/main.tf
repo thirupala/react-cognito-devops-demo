@@ -6,17 +6,30 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
+    }
   }
 }
 
 provider "aws" {
   region = var.aws_region
-  #profile = "cognito-demo"
+  # Profile commented out for GitHub Actions compatibility
+  # Use AWS_PROFILE environment variable for local development
 }
 
 locals {
   callback_uri = "${var.app_base_url}/callback"
   logout_uri   = var.app_base_url
+}
+
+########################################
+# RANDOM SUFFIX FOR UNIQUE NAMING
+########################################
+
+resource "random_id" "cognito_suffix" {
+  byte_length = 3
 }
 
 ########################################
@@ -92,10 +105,12 @@ resource "aws_cognito_user_pool_client" "this" {
 }
 
 ########################################
-# COGNITO HOSTED UI DOMAIN
+# COGNITO HOSTED UI DOMAIN (with unique suffix)
 ########################################
 
 resource "aws_cognito_user_pool_domain" "this" {
-  domain       = var.cognito_domain_prefix
+  # Fixed typo: develeopment -> development
+  # Added random suffix for uniqueness
+  domain       = "development-demo-app-${random_id.cognito_suffix.hex}"
   user_pool_id = aws_cognito_user_pool.this.id
 }
