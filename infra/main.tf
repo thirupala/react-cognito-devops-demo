@@ -15,6 +15,8 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
+  # Profile commented out for GitHub Actions compatibility
+  # Use AWS_PROFILE environment variable for local development
 }
 
 locals {
@@ -103,10 +105,12 @@ resource "aws_cognito_user_pool_client" "this" {
 }
 
 ########################################
-# COGNITO HOSTED UI DOMAIN
+# COGNITO HOSTED UI DOMAIN (with unique suffix)
 ########################################
 
 resource "aws_cognito_user_pool_domain" "this" {
+  # Fixed typo: develeopment -> development
+  # Added random suffix for uniqueness
   domain       = "development-demo-app-${random_id.cognito_suffix.hex}"
   user_pool_id = aws_cognito_user_pool.this.id
 }

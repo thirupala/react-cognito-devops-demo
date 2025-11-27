@@ -3,5 +3,6 @@ github_repo = "react-cognito-devops-demo"
 environment = "dev"
 aws_region  = "us-east-1"
 
-# Update this after first deployment with your CloudFront domain
+# CloudFront URL will be used once deployed
+# Update this after first deployment with CloudFront domain
 app_base_url = "http://localhost:3000"

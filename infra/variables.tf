@@ -7,19 +7,21 @@ variable "aws_region" {
 variable "app_base_url" {
   description = "Base URL of the frontend application"
   type        = string
-  default     = "http://localhost:3000"
+  # For local dev; in real envs override via TF var or tfvars
+  default = "http://localhost:3000"
 }
 
 variable "cognito_domain_prefix" {
-  description = "Cognito custom domain prefix (deprecated - using random suffix)"
+  description = "Cognito custom domain prefix (must be globally unique in region)"
   type        = string
-  default     = "development-demo-app"
+  # This is now deprecated - we use random suffix instead
+  default = "development-demo-app"
 }
 
 variable "project_name" {
-  description = "Name used for resource prefixes"
+  description = "Name used for resource prefixes (S3 bucket, CloudFront, etc.)"
   type        = string
-  default     = "react-demo-app"
+  default = "react-demo-app"
 }
 
 variable "github_org" {
