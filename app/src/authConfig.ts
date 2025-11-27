@@ -1,0 +1,26 @@
+const {
+  REACT_APP_COGNITO_DOMAIN,
+  REACT_APP_COGNITO_CLIENT_ID,
+  REACT_APP_COGNITO_REDIRECT_URI,
+  REACT_APP_COGNITO_LOGOUT_REDIRECT_URI,
+  REACT_APP_COGNITO_REGION,
+  REACT_APP_COGNITO_SCOPES,
+} = process.env as {
+  [key: string]: string | undefined;
+};
+
+if (!REACT_APP_COGNITO_DOMAIN) throw new Error("Missing REACT_APP_COGNITO_DOMAIN");
+if (!REACT_APP_COGNITO_CLIENT_ID) throw new Error("Missing REACT_APP_COGNITO_CLIENT_ID");
+if (!REACT_APP_COGNITO_REDIRECT_URI) throw new Error("Missing REACT_APP_COGNITO_REDIRECT_URI");
+if (!REACT_APP_COGNITO_LOGOUT_REDIRECT_URI) {
+  throw new Error("Missing REACT_APP_COGNITO_LOGOUT_REDIRECT_URI");
+}
+
+export const cognitoConfig = {
+  domain: REACT_APP_COGNITO_DOMAIN,
+  clientId: REACT_APP_COGNITO_CLIENT_ID,
+  redirectUri: REACT_APP_COGNITO_REDIRECT_URI,
+  logoutRedirectUri: REACT_APP_COGNITO_LOGOUT_REDIRECT_URI,
+  region: REACT_APP_COGNITO_REGION || "ap-south-1",
+  scopes: (REACT_APP_COGNITO_SCOPES || "openid profile email").split(" "),
+};
