@@ -6,17 +6,28 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
+    }
   }
 }
 
 provider "aws" {
   region = var.aws_region
-  #profile = "cognito-demo"
 }
 
 locals {
   callback_uri = "${var.app_base_url}/callback"
   logout_uri   = var.app_base_url
+}
+
+########################################
+# RANDOM SUFFIX FOR UNIQUE NAMING
+########################################
+
+resource "random_id" "cognito_suffix" {
+  byte_length = 3
 }
 
 ########################################
@@ -96,6 +107,6 @@ resource "aws_cognito_user_pool_client" "this" {
 ########################################
 
 resource "aws_cognito_user_pool_domain" "this" {
-  domain       = var.cognito_domain_prefix
+  domain       = "development-demo-app-${random_id.cognito_suffix.hex}"
   user_pool_id = aws_cognito_user_pool.this.id
 }
