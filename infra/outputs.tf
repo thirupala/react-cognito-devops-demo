@@ -1,4 +1,3 @@
-
 output "cognito_domain" {
   description = "Full Cognito Hosted UI domain (without https://)"
   value       = "${aws_cognito_user_pool_domain.this.domain}.auth.${var.aws_region}.amazoncognito.com"
