@@ -173,7 +173,7 @@ output "frontend_cloudfront_domain" {
 }
 resource "aws_iam_role_policy" "github_frontend_s3" {
   name   = "github-frontend-s3-access"
-  role   = aws_iam_role.github_oidc_frontend.name   # <- use this
+  role   = aws_iam_role.github_oidc_terraform.name # <- use this
   policy = data.aws_iam_policy_document.github_frontend_s3.json
 }
 
