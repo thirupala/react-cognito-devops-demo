@@ -1,60 +1,56 @@
-#######################################################
-# IAM ROLE FOR GITHUB OIDC (FRONTEND PIPELINE)
-#######################################################
-
-data "aws_iam_policy_document" "github_oidc_frontend_assume_role" {
+data "aws_iam_policy_document" "github_oidc_terraform_assume_role" {
   statement {
-    sid    = "GitHubOidcAssumeRole"
     effect = "Allow"
 
     principals {
-      type = "Federated"
-      identifiers = [
-        "arn:aws:iam::${var.aws_account_id}:oidc-provider/token.actions.githubusercontent.com"
-      ]
+      type        = "Federated"
+      identifiers = ["arn:aws:iam::${var.aws_account_id}:oidc-provider/token.actions.githubusercontent.com"]
     }
 
-    actions = [
-      "sts:AssumeRoleWithWebIdentity",
-    ]
+    actions = ["sts:AssumeRoleWithWebIdentity"]
 
-    # Restrict which GitHub repo/branch can assume this role
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
 
       values = [
-        # repo:OWNER/REPO:ref:refs/heads/BRANCH
-        "repo:thirupala/react-cognito-devops-demo:ref:refs/heads/main",
+        "repo:thirupala/react-cognito-devops-demo:ref:refs/heads/main"
       ]
     }
 
-    # Recommended: ensure audience is sts.amazonaws.com
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:aud"
-
-      values = [
-        "sts.amazonaws.com",
-      ]
+      values   = ["sts.amazonaws.com"]
     }
   }
 }
 
-resource "aws_iam_role" "github_oidc_frontend" {
-  name               = "github-oidc-frontend-role"
-  assume_role_policy = data.aws_iam_policy_document.github_oidc_frontend_assume_role.json
+resource "aws_iam_role" "github_oidc_terraform" {
+  name               = "github-oidc-terraform-role"
+  assume_role_policy = data.aws_iam_policy_document.github_oidc_terraform_assume_role.json
+}
 
-  description = "Role assumed by GitHub Actions (frontend build/deploy) via GitHub OIDC"
-
-  tags = {
-    Name        = "github-oidc-frontend-role"
-    Environment = var.environment
-    Project     = var.project_name
+data "aws_iam_policy_document" "github_oidc_terraform_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:*",
+      "cloudfront:*",
+      "cognito-idp:*",
+      "iam:PassRole",
+      "iam:GetRole",
+      "iam:ListRolePolicies",
+      "iam:AttachRolePolicy",
+      "iam:CreateRole",
+      "iam:PutRolePolicy",
+      "iam:DeleteRolePolicy"
+    ]
+    resources = ["*"]
   }
 }
 
-output "github_oidc_frontend_role_arn" {
-  description = "IAM role ARN for GitHub OIDC frontend pipeline"
-  value       = aws_iam_role.github_oidc_frontend.arn
+resource "aws_iam_role_policy" "github_oidc_terraform_attach" {
+  role   = aws_iam_role.github_oidc_terraform.name
+  policy = data.aws_iam_policy_document.github_oidc_terraform_policy.json
 }
