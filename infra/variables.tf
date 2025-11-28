@@ -1,3 +1,5 @@
+
+
 variable "aws_region" {
   description = "AWS region name"
   type        = string
@@ -7,21 +9,19 @@ variable "aws_region" {
 variable "app_base_url" {
   description = "Base URL of the frontend application"
   type        = string
-  # For local dev; in real envs override via TF var or tfvars
-  default = "http://localhost:3000"
+  default     = "http://localhost:3000"
 }
 
 variable "cognito_domain_prefix" {
-  description = "Cognito custom domain prefix (must be globally unique in region)"
+  description = "Cognito custom domain prefix (deprecated - using random suffix)"
   type        = string
-  # This is now deprecated - we use random suffix instead
-  default = "development-demo-app"
+  default     = "development-demo-app"
 }
 
 variable "project_name" {
-  description = "Name used for resource prefixes (S3 bucket, CloudFront, etc.)"
+  description = "Name used for resource prefixes"
   type        = string
-  default = "react-demo-app"
+  default     = "react-demo-app"
 }
 
 variable "github_org" {
@@ -38,4 +38,8 @@ variable "environment" {
   description = "Environment name (dev, staging, prod)"
   type        = string
   default     = "dev"
+}
+variable "aws_account_id" {
+  description = "AWS Account ID"
+  type        = string
 }

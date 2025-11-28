@@ -11,7 +11,6 @@ resource "random_id" "suffix" {
 #######################################################
 
 resource "aws_s3_bucket" "frontend" {
-  # Added random suffix to ensure uniqueness
   bucket = "${var.project_name}-frontend-${random_id.suffix.hex}"
 
   tags = {
@@ -49,7 +48,6 @@ resource "aws_s3_bucket_website_configuration" "frontend" {
   }
 }
 
-# S3 bucket policy to allow CloudFront OAC access
 resource "aws_s3_bucket_policy" "frontend" {
   bucket = aws_s3_bucket.frontend.id
 
@@ -79,7 +77,6 @@ resource "aws_s3_bucket_policy" "frontend" {
 #######################################################
 
 resource "aws_cloudfront_origin_access_control" "frontend" {
-  # Added random suffix to ensure uniqueness
   name                              = "${var.project_name}-oac-${random_id.suffix.hex}"
   description                       = "OAC for React frontend"
   origin_access_control_origin_type = "s3"
@@ -120,7 +117,6 @@ resource "aws_cloudfront_distribution" "frontend" {
     max_ttl     = 86400
   }
 
-  # Custom error responses for SPA routing
   custom_error_response {
     error_code         = 404
     response_code      = 200
@@ -168,4 +164,43 @@ output "frontend_cloudfront_id" {
 output "frontend_cloudfront_domain" {
   description = "CloudFront domain"
   value       = aws_cloudfront_distribution.frontend.domain_name
+}
+data "aws_iam_policy_document" "github_frontend_s3" {
+  # List objects in the bucket (for aws s3 sync / ListObjectsV2)
+  statement {
+    sid    = "ListFrontendBucket"
+    effect = "Allow"
+
+    actions = [
+      "s3:ListBucket",
+    ]
+
+    resources = [
+      aws_s3_bucket.frontend.arn,
+    ]
+  }
+
+  # Read/write objects in the bucket
+  statement {
+    sid    = "ObjectAccessFrontendBucket"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+    ]
+
+    resources = [
+      "${aws_s3_bucket.frontend.arn}/*",
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "github_frontend_s3" {
+  name   = "github-frontend-s3-access"
+
+  role   = "github-oidc-frontend-role"
+
+  policy = data.aws_iam_policy_document.github_frontend_s3.json
 }
