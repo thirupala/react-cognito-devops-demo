@@ -208,9 +208,3 @@ data "aws_iam_policy_document" "github_frontend_s3" {
     ]
   }
 }
-
-resource "aws_iam_role_policy" "github_frontend_s3" {
-  name   = "github-frontend-s3-access"
-  role   = data.aws_iam_role.github_frontend_role.name
-  policy = data.aws_iam_policy_document.github_frontend_s3.json
-}
