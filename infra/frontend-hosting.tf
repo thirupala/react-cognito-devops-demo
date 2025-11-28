@@ -11,7 +11,8 @@ resource "random_id" "suffix" {
 #######################################################
 
 resource "aws_s3_bucket" "frontend" {
-  bucket = "${var.project_name}-frontend-${random_id.suffix.hex}"
+  bucket        = "${var.project_name}-frontend-${random_id.suffix.hex}"
+  force_destroy = true  # Ensure destroy works even if objects exist
 
   tags = {
     Name        = "React Frontend Bucket"
@@ -36,6 +37,7 @@ resource "aws_s3_bucket_public_access_block" "frontend" {
   restrict_public_buckets = true
 }
 
+# OPTIONAL — Only needed if you want direct S3 website endpoint
 resource "aws_s3_bucket_website_configuration" "frontend" {
   bucket = aws_s3_bucket.frontend.bucket
 
@@ -47,6 +49,10 @@ resource "aws_s3_bucket_website_configuration" "frontend" {
     key = "index.html"
   }
 }
+
+#######################################################
+# BUCKET POLICY FOR CLOUDFRONT OAC ACCESS
+#######################################################
 
 resource "aws_s3_bucket_policy" "frontend" {
   bucket = aws_s3_bucket.frontend.id
@@ -164,4 +170,47 @@ output "frontend_cloudfront_id" {
 output "frontend_cloudfront_domain" {
   description = "CloudFront domain"
   value       = aws_cloudfront_distribution.frontend.domain_name
+}
+resource "aws_iam_role_policy" "github_frontend_s3" {
+  name   = "github-frontend-s3-access"
+  role   = aws_iam_role.github_oidc_frontend.name   # <- use this
+  policy = data.aws_iam_policy_document.github_frontend_s3.json
+}
+
+data "aws_iam_policy_document" "github_frontend_s3" {
+  # Allow ListBucket for aws s3 sync
+  statement {
+    sid    = "ListFrontendBucket"
+    effect = "Allow"
+
+    actions = ["s3:ListBucket"]
+
+    resources = [
+      aws_s3_bucket.frontend.arn,
+    ]
+  }
+
+  # Allow object-level read/write/delete
+  statement {
+    sid    = "ObjectAccessFrontendBucket"
+    effect = "Allow"
+
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+      "s3:GetObjectAcl",
+      "s3:PutObjectAcl"
+    ]
+
+    resources = [
+      "${aws_s3_bucket.frontend.arn}/*",
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "github_frontend_s3" {
+  name   = "github-frontend-s3-access"
+  role   = data.aws_iam_role.github_frontend_role.name
+  policy = data.aws_iam_policy_document.github_frontend_s3.json
 }
