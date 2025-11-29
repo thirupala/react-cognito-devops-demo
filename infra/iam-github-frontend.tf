@@ -201,22 +201,3 @@ resource "aws_cloudfront_distribution" "frontend" {
     Environment = var.environment
   }
 }
-
-#######################################################
-# OUTPUTS FOR FRONTEND
-#######################################################
-
-output "frontend_s3_bucket" {
-  description = "S3 bucket for React app hosting"
-  value       = aws_s3_bucket.frontend.bucket
-}
-
-output "frontend_cloudfront_id" {
-  description = "CloudFront distribution ID"
-  value       = aws_cloudfront_distribution.frontend.id
-}
-
-output "frontend_cloudfront_domain" {
-  description = "CloudFront domain"
-  value       = aws_cloudfront_distribution.frontend.domain_name
-}
