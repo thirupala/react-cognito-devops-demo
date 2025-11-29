@@ -1,18 +1,16 @@
 #######################################################
 # RANDOM SUFFIX FOR UNIQUE RESOURCE NAMES
 #######################################################
-
 resource "random_id" "suffix" {
   byte_length = 4
 }
-
 #######################################################
 # S3 BUCKET FOR REACT FRONTEND HOSTING
 #######################################################
 
 resource "aws_s3_bucket" "frontend" {
   bucket        = "${var.project_name}-frontend-${random_id.suffix.hex}"
-  force_destroy = true  # Ensure destroy works even if objects exist
+  force_destroy = true # Ensure destroy works even if objects exist
 
   tags = {
     Name        = "React Frontend Bucket"
