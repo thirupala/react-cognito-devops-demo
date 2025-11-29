@@ -1,3 +1,61 @@
+data "aws_iam_policy_document" "github_oidc_terraform_policy" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:*",
+      "cloudfront:*",
+      "cognito-idp:*",
+      "iam:PassRole",
+      "iam:GetRole",
+      "iam:ListRolePolicies",
+      "iam:AttachRolePolicy",
+      "iam:CreateRole",
+      "iam:PutRolePolicy",
+      "iam:DeleteRolePolicy"
+    ]
+    resources = ["*"]
+  }
+
+  # ADD THIS NEW STATEMENT
+  statement {
+    sid    = "TerraformStateLocking"
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem"
+    ]
+    resources = [
+      "arn:aws:dynamodb:us-east-1:727588137294:table/terraform-state-lock"
+    ]
+  }
+
+  # ADD THIS NEW STATEMENT  
+  statement {
+    sid    = "TerraformStateStorage"
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject"
+    ]
+    resources = [
+      "arn:aws:s3:::react-cognito-terraform-state-*/terraform.tfstate",
+      "arn:aws:s3:::react-cognito-terraform-state-*/*"
+    ]
+  }
+
+  statement {
+    sid    = "TerraformStateBucket"
+    effect = "Allow"
+    actions = [
+      "s3:ListBucket"
+    ]
+    resources = [
+      "arn:aws:s3:::react-cognito-terraform-state-*"
+    ]
+  }
+}
 data "aws_iam_policy_document" "github_oidc_terraform_assume_role" {
   statement {
     effect = "Allow"
